@@ -102,7 +102,7 @@ cdn_distributions:
           path_origin_name: <strign> (get name from origins and set path_origin_id)
           redirect_to: ""
           waf_rule_set_name: <strign> (get name from Firewalls and set waf_rule_set_id)
-          cache_settings_id: <strign> (get name from cache_settings and set cache_settings_id) 
+          cache_settings_name: <strign> (get name from cache_settings and set cache_settings_id) 
 
 ```
 
