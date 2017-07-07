@@ -5,7 +5,6 @@ Custom library to be used in modules
 
 ## AZION api
 
-
 ```
 ansible-playbook tests/test.yml  -vvv
 ```
@@ -23,9 +22,12 @@ ansible-playbook tests/test.yml  -vvv
 SCRIPT_PATH=https://raw.githubusercontent.com/ansible/ansible/devel/hacking/test-module
 wget $SCRIPT_PATH -O tests/test-module
 export PYTHONPATH=${PYTHONPATH}:${PWD}/library/azion;
-python ./tests/test-module -m ./library/azion_cdn_facts.py -a 'name=test-ansible'
 ```
 
-* Test
+* Query by ID:
 
-`ansible/hacking/test-module -m azion_cdn_facts.py -a "id=1486490960"`
+`python ./tests/test-module -m ./library/azion_cdn_facts.py -a 'name=test-ansible'`
+
+* Query by name:
+
+`python ./tests/test-module -m ./library/azion_cdn_facts.py -a 'id=1486490960'`

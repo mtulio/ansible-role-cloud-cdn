@@ -46,6 +46,13 @@ class AzionAPI(APIService):
         self.routes = {
             'cdn_config': '/content_delivery/configurations'
         }
+        self.status = {
+            'ok': 200,
+            'not_found': 404,
+            'token_expired': 403,
+            'too_many_req': 429,
+            'server_error': 500
+        }
 
         # throtle defined by API - HTTP 429 https://www.azion.com.br/developers/api/
         self.throtle_limit_min = 20
@@ -80,45 +87,65 @@ class AzionAPI(APIService):
         * rules_engine /content_delivery/configurations/:conf_id/rules_engine
         """
         # print repr(cdn_config)
-        path = '{}/{}/origins'.format(self.routes['cdn_config'], cdn_config['id'])
+        path = '{:s}/{}/origins'.format(self.routes['cdn_config'], cdn_config['id'])
         cdn_config['origins'] = self.get_all(path)
 
-        path = '{}/{}/cache_settings'.format(self.routes['cdn_config'], cdn_config['id'])
+        path = '{:s}/{}/cache_settings'.format(self.routes['cdn_config'], cdn_config['id'])
         cdn_config['cache_settings'] = self.get_all(path)
 
-        path = '{}/{}/rules_engine'.format(self.routes['cdn_config'], cdn_config['id'])
+        path = '{:s}/{}/rules_engine'.format(self.routes['cdn_config'], cdn_config['id'])
         cdn_config['rules_engine'] = self.get_all(path)
 
         return cdn_config
 
-    def cdn_config(self, cdn_id=None):
+    def cdn_config(self, cdn_id=None, cdn_name=None):
         """
         Get all resources from item_name.
         cdn_id is a ID for CDN and if is None, will return config from all CDNs
         """
         try:
+            status = self.status['not_found']
+            cfg = {}
             if not self.api_has_session():
                 self.init_api()
 
-            if cdn_id is None:
+            if cdn_id is not None:
+                path = '{:s}/{:d}'.format(self.routes['cdn_config'], cdn_id)
+                c = self.get_all(path)
+
+                if 'id' in c:
+                    c = self.cdn_config_expanded(c)
+                    return c, self.status['ok']
+
+                return cfg, status
+
+            elif cdn_name is not None:
+                cfg_all = self.get_all(self.routes['cdn_config'])
+                for c in cfg_all:
+                    if c['name'] == cdn_name:
+                        return self.cdn_config_expanded(c), self.status['ok']
+
+                return cfg, status
+
+            else:
+                cfg = []
                 cfg_all = self.get_all(self.routes['cdn_config'])
                 total = len(cfg_all)
                 count = 1
                 for c in cfg_all:
-                    print "expanding config for ", repr(c)
                     if count > (self.throtle_limit_min - 3):
-                        print ("Avoiding Throtle {} of {}. Waiting 50s".format(count,
-                                                        self.throtle_limit_min))
+                        #print ("Avoiding Throtle {} of {}. Waiting 50s".format(count,
+                        #                                self.throtle_limit_min))
                         time.sleep(50)
                         count = 0
 
                     cfg.append(self.cdn_config_expanded(c))
                     count += 3
-                return cfg
-            else:
-                path = '{:s}/{:d}'.format(self.routes['cdn_config'], cdn_id)
-                c = self.get_all(path)
-                return self.cdn_config_expanded(c)
+
+                if cfg is not None:
+                    status = self.status['ok']
+
+                return cfg, status
 
         except ServiceException as e:
-            return {'{}'.format(e)}
+            return {'{}'.format(e)}, self.status['server_error']

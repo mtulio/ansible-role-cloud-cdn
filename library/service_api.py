@@ -168,8 +168,11 @@ class APIService(object):
     def get_all(self, path):
         """ Return all content of Path in JSON format. """
 
-        res = self.request('GET', path)
-        return res.json()
+        res =  self.request('GET', path)
+        if res.status_code == 200:
+            return res.json()
+
+        return { 'error': 'HTTP request error ID: {:d}'.format(res.status_code)}
 
     def get(self, path, item_id):
         """ Return the JSON item from path with ID item_id. """

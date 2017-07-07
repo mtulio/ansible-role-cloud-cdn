@@ -7,7 +7,15 @@ from service_azion import AzionAPI
 
 api = AzionAPI()
 
-res = api.cdn_config(cdn_id=1406490960)
-#res = api.cdn_config()
+## All
+res = api.cdn_config()
 
+## by ID
+#res, st = api.cdn_config(cdn_id=1449590219)
+
+## by NAME
+#res, st = api.cdn_config(cdn_name='test-ansible')
+
+
+#print st
 print json.dumps(res, sort_keys=True, indent=4, separators=(',', ': '))
