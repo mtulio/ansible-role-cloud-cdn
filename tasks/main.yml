@@ -1,2 +1,12 @@
 ---
 # tasks file for mtulio-cloud-cdn
+
+- name: AZION - Getting CDN config by ID
+  azion_cdn_facts:
+    id: "{{ azion_cdn_id }}"
+  when: azion_cdn_id is defined
+
+- name: AZION - Getting CDN config by NAME
+  azion_cdn_facts:
+    id: "{{ azion_cdn_name }}"
+  when: azion_cdn_name is defined

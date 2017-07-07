@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 # Copyright 2017 MTOps All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -61,8 +64,6 @@ class AzionAPI(APIService):
                     token = os.getenv("AZION_BASE64") or None
                 except:
                     raise ('Unable to get Base64 auth token AZION_BASE64 from env')
-            raise ('Unable to get Base64 auth token AZION_BASE64 from env'
-            sys.exit(1)
 
         # force use session token
         APIService.__init__(self, url_api, token_sess=token)

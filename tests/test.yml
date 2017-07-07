@@ -1,5 +1,11 @@
 ---
-- hosts: localhost
+- name: Test CDN ansible role
+  hosts: localhost
   connection: local
+  become: no
+
+  vars:
+    azion_cdn_name: teste-ansible
+
   roles:
-    - mtulio-cloud-cdn
+    - mtulio-ansible-role-cloud-cdn

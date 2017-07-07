@@ -1,6 +1,5 @@
 #!/usr/bin/env python
-
-# A custom ansible module for updating the ec2 subnet "Auto Assign Public IP" attribute
+# -*- coding: utf-8 -*-
 
 DOCUMENTATION = '''
 module: azion_cdn_facts
@@ -31,6 +30,9 @@ from collections import namedtuple
 from ansible.module_utils.basic import AnsibleModule
 
 try:
+    import os, sys
+    sys.path.append(os.path.join(os.path.dirname(__file__)))
+
     from service_azion import AzionAPI
     HAS_AZION_LIB = True
 except ImportError:
