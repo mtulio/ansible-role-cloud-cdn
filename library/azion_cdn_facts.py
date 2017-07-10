@@ -31,7 +31,7 @@ from ansible.module_utils.basic import AnsibleModule
 
 
 try:
-    from azion import AzionAPI
+    import azion
     HAS_AZION_LIB = True
 except ImportError:
     HAS_AZION_LIB = False
@@ -44,8 +44,12 @@ def azion_cdn_config(res, status):
     changed = False
 
     if status != 200:
-        success = False
-        message = { "CDN_ERROR": res }
+        if not bool(res):
+            success = True
+            message = { "CDN": 'Not Found' }
+        else:
+            success = False
+            message = { "CDN": 'Error: {}'.format(res) }
     else:
         success = True
         message = { "CDN": res }
@@ -54,12 +58,12 @@ def azion_cdn_config(res, status):
 
 
 def azion_cdn_config_by_name(api, cdn_name):
-    res, status = api.cdn_config(cdn_name=cdn_name)
+    res, status = api.get_cdn_config(cdn_name=cdn_name)
     return azion_cdn_config(res, status)
 
 
 def azion_cdn_config_by_id(api, cdn_id):
-    res, status = api.cdn_config(cdn_id=cdn_id)
+    res, status = api.get_cdn_config(cdn_id=cdn_id)
     return azion_cdn_config(res, status)
 
 
@@ -74,7 +78,7 @@ def main():
         module.fail_json(msg='You should set name or id argument')
 
     try:
-        azion_api = AzionAPI()
+        azion_api = azion.AzionAPI()
     except Exception as e:
         module.fail_json(msg="Can't stablish connection - %s " % str(e))
 

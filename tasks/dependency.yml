@@ -1,0 +1,22 @@
+---
+- set_fact:
+    venv_path: /tmp/venv-cdn
+
+- name: Install python libraries
+  pip:
+    name: "{{ item }}"
+    state: latest
+    virtualenv: "{{ venv_path }}"
+    virtualenv_site_packages: yes
+  with_items:
+    - pip
+    - azion
+    - boto3
+  tags:
+    - always
+
+- name: Tell subsequent tasks to use virtualenv
+  set_fact:
+    ansible_python_interpreter: "{{ venv_path }}/bin/python"
+  tags:
+    - always

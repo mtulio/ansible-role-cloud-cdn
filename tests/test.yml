@@ -5,7 +5,7 @@
   become: no
 
   vars:
-    azion_cdn_name: teste-ansible
+   azion_cdn_name: teste-ansible
 
   roles:
     - mtulio-ansible-role-cloud-cdn

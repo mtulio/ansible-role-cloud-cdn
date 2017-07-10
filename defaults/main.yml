@@ -1,3 +1,4 @@
 ---
 # defaults file for mtulio-cloud-cdn
-azion_cdn_id: 0
+azion_cdn_id: 111111111
+azion_cdn_name: cdn-test-ansible
