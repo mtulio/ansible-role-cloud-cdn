@@ -31,15 +31,12 @@ from ansible.module_utils.basic import AnsibleModule
 
 
 try:
-    import os, sys
-    sys.path.append(os.path.join(os.path.dirname(__file__)))
-
-    from service_azion import AzionAPI
+    from azion import AzionAPI
     HAS_AZION_LIB = True
 except ImportError:
     HAS_AZION_LIB = False
-    if __name__ == '__main__':
-        raise
+    # if __name__ == '__main__':
+    #     raise
 
 
 def azion_cdn_config(res, status):
