@@ -1,30 +1,19 @@
 ---
 - include: dependency.yml
+  tags: always
 
-- name: AZION - Creating CDN using payload
-  when: azion_cdn_name is defined
-  azion_cdn_create:
-    name: "{{ azion_cdn_name }}"
-    state: present
-    payload: "{{ cdn_payload }}"
+- block:
+    - name: AZION CDN config
+      include: azion_cdn.yml
+      when: item_cdn.provider == 'azion'
+      with_items: "{{ cdn_distributions }}"
+      loop_control:
+        loop_var: item_cdn
 
-- name: AZION - Creating CDN using sample
-  when: azion_cdn_name is defined
-  azion_cdn_create:
-    name: "{{ azion_cdn_name }}-sample"
-    state: present
+  rescue:
+    - meta: flush_handlers
 
-- name: AZION - Getting CDN config by ID
-  azion_cdn_facts:
-    id: "{{ azion_cdn_id }}"
-  when: azion_cdn_id is defined
-
-- name: AZION - Getting CDN config by NAME
-  azion_cdn_facts:
-    name: "{{ azion_cdn_name }}"
-  when: azion_cdn_name is defined
-
-- name: AZION - Getting CDN config by NAME
-  azion_cdn_facts:
-    name: "{{ azion_cdn_name }}-sample"
-  when: azion_cdn_name is defined
+  always:
+    - name: Main | Return to original Python interpreter
+      set_fact:
+        ansible_python_interpreter: "{{ ansible_python_interpreter_current }}"

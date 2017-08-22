@@ -62,7 +62,7 @@ def azion_cdn_result(res, status):
     if status != 200:
         if 'name' in res:
             success = True
-            message = { "CDN exists": res }
+            message = { "CDN_exists": res }
 
         elif not bool(res):
             success = True
@@ -73,7 +73,8 @@ def azion_cdn_result(res, status):
             message = { "CDN": 'Error {}: {}'.format(status, res) }
     else:
         success = True
-        message = { "CDN": res }
+        changed = True
+        message = { "CDN_created": res }
 
     return update_result(success=success, changed=changed, message=message)
 

@@ -3,7 +3,7 @@
 
 DOCUMENTATION = '''
 module: azion_cdn_facts
-version_added: "0.1"
+version_added: "0.1.0"
 short_description: Obtain facts about an AZION Content Delivery
 description:
      - Describe AZION Content Delivery configuration

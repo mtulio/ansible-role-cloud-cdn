@@ -1,22 +1,16 @@
 ---
-- set_fact:
-    venv_path: /tmp/venv-cdn
+- name: Dependency | Setup virtualenv path
+  set_fact:
+    ansible_python_interpreter_current: "{{ ansible_python_interpreter }}"
 
-- name: Install python libraries
+- name: Dependency | Install python libraries
   pip:
     name: "{{ item }}"
     state: latest
-    virtualenv: "{{ venv_path }}"
+    virtualenv: "{{ cloud_cdn_venv_tmp }}"
     virtualenv_site_packages: yes
-  with_items:
-    - pip
-    - azion
-    - boto3
-  tags:
-    - always
+  with_items: "{{ cloud_cdn_dependencies }}"
 
-- name: Tell subsequent tasks to use virtualenv
+- name: Dependency | Set tasks to use custom Virtualenv used by custom libraries
   set_fact:
-    ansible_python_interpreter: "{{ venv_path }}/bin/python"
-  tags:
-    - always
+    ansible_python_interpreter: "{{ cloud_cdn_venv_tmp }}/bin/python"

@@ -1,0 +1,18 @@
+---
+- name: AZION | Get CDN config by NAME
+  azion_cdn_facts:
+    name: "{{ item_cdn.name }}"
+  when: item_cdn.state == 'backup'
+
+- name: AZION | Create CDN from default template
+  when: item_cdn.payload is not defined
+  azion_cdn_create:
+    name: "{{ item_cdn.name }}"
+    state: "{{ item_cdn.state }}"
+
+- name: AZION | Create CDN from payload
+  when: item_cdn.payload is defined
+  azion_cdn_create:
+    name: "{{ item_cdn.name }}"
+    state: "{{ item_cdn.state }}"
+    payload: "{{ item_cdn.payload }}"
