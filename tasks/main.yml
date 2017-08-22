@@ -1,6 +1,19 @@
 ---
 - include: dependency.yml
 
+- name: AZION - Creating CDN using payload
+  when: azion_cdn_name is defined
+  azion_cdn_create:
+    name: "{{ azion_cdn_name }}"
+    state: present
+    payload: "{{ cdn_payload }}"
+
+- name: AZION - Creating CDN using sample
+  when: azion_cdn_name is defined
+  azion_cdn_create:
+    name: "{{ azion_cdn_name }}-sample"
+    state: present
+
 - name: AZION - Getting CDN config by ID
   azion_cdn_facts:
     id: "{{ azion_cdn_id }}"
@@ -11,11 +24,7 @@
     name: "{{ azion_cdn_name }}"
   when: azion_cdn_name is defined
 
-
-# - set_fact:
-#     azion_cdn_name: busca-aws-carrodemola
-#
-# - name: AZION - Getting CDN config by NAME
-#   azion_cdn_facts:
-#     name: "{{ azion_cdn_name }}"
-#   when: azion_cdn_name is defined
+- name: AZION - Getting CDN config by NAME
+  azion_cdn_facts:
+    name: "{{ azion_cdn_name }}-sample"
+  when: azion_cdn_name is defined

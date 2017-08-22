@@ -4,8 +4,168 @@
   connection: local
   become: no
 
-  vars:
-   azion_cdn_name: teste-ansible
-
   roles:
     - mtulio-ansible-role-cloud-cdn
+
+  vars:
+   azion_cdn_name: teste-ansible
+   cdn_payload: |
+       {
+             "name": "teste-ansible",
+             "origin_address": "domain.teste-ansible.com",
+             "cname_access_only": true,
+             "cname": ["www1.teste-ansible.com"],
+             "delivery_protocol": "http",
+             "cdn_cache_settings": "override",
+             "cdn_cache_settings_minimum_ttl": 2592000,
+             "origin_protocol_policy": "preserve",
+             "origins": [
+                       {
+                           "name": "origin-default",
+                           "origin_type": "single_origin",
+                           "host_header": "www..teste-ansible.com",
+                           "origin_protocol_policy": "https",
+                           "addresses": [
+                               {
+                                "address": "origin-www.teste-ansible.com"
+                               }
+                           ],
+                           "connection_timeout": 10,
+                           "timeout_between_bytes": 30
+                       },
+                       {
+                           "name": "origin-balanced",
+                           "origin_type": "load_balancer",
+                           "method": "ip_hash",
+                           "host_header": "www-lb.teste-ansible.com",
+                           "origin_protocol_policy": "preserve",
+                           "addresses": [
+                               {
+                                "address": "www-lb1.teste-ansible.com",
+                                "weight": 10,
+                                "server_role": "primary",
+                                "is_active": true
+                               },
+                               {
+                                "address": "origin-lb2.teste-ansible.com",
+                                "weight": 1,
+                                "server_role": "backup",
+                                "is_active": true
+                               }
+                           ],
+                           "connection_timeout": 10,
+                           "timeout_between_bytes": 30
+                       },
+                       {
+                           "name": "origin-static",
+                           "origin_type": "single_origin",
+                           "host_header": "static..teste-ansible.com",
+                           "origin_protocol_policy": "http",
+                           "addresses": [
+                               {
+                                "address": "origin-static.teste-ansible.com"
+                               }
+                           ],
+                           "connection_timeout": 10,
+                           "timeout_between_bytes": 20
+                       },
+                       {
+                           "name": "origin-proxy",
+                           "origin_type": "single_origin",
+                           "host_header": "proxy.teste-ansible.com",
+                           "origin_protocol_policy": "preserve",
+                           "addresses": [
+                               {
+                                "address": "origin-proxy.teste-ansible.com"
+                               }
+                           ],
+                           "connection_timeout": 10,
+                           "timeout_between_bytes": 20
+                       }
+                   ],
+             "cache_settings": [
+                 {
+                   "name": "cache-1-hour-ignore-qs-cookies",
+                   "browser_cache_settings": false,
+                   "cdn_cache_settings": "override",
+                   "cdn_cache_settings_maximum_ttl": 3600,
+                   "cache_by_query_string": "ignore",
+                   "enable_query_string_sort": false,
+                   "cache_by_cookies": "ignore"
+                 },
+                 {
+                   "name": "cache-5-minutes-ignore-qs-cookies",
+                   "browser_cache_settings": false,
+                   "cdn_cache_settings": "override",
+                   "cdn_cache_settings_maximum_ttl": 300,
+                   "cache_by_query_string": "ignore",
+                   "enable_query_string_sort": false,
+                   "cache_by_cookies": "ignore"
+                 },
+                 {
+                   "name": "cache-bypass",
+                   "browser_cache_settings": false,
+                   "cdn_cache_settings": "bypass",
+                   "cache_by_query_string": "ignore",
+                   "cache_by_cookies": "ignore"
+                 }
+               ],
+             "rules_engine": [
+                   {
+                     "path": "/images/",
+                     "regex": false,
+                     "protocol_policy": "http,https",
+                     "gzip": false,
+                     "behavior": "delivery",
+                     "path_origin_name": "origin-static",
+                     "cache_settings_name": "cache-1-hour-ignore-qs-cookies"
+                   },
+                   {
+                     "path": "/fonts/",
+                     "regex": false,
+                     "protocol_policy": "http,https",
+                     "gzip": false,
+                     "behavior": "delivery",
+                     "path_origin_name": "origin-static",
+                     "cache_settings_name": "cache-1-hour-ignore-qs-cookies"
+                   },
+                   {
+                     "path": "/css/",
+                     "regex": false,
+                     "protocol_policy": "http,https",
+                     "gzip": false,
+                     "behavior": "delivery",
+                     "path_origin_name": "origin-static",
+                     "cache_settings_name": "cache-5-minutes-ignore-qs-cookies"
+                   },
+                   {
+                     "path": "/js/",
+                     "regex": false,
+                     "protocol_policy": "http,https",
+                     "gzip": false,
+                     "behavior": "delivery",
+                     "path_origin_name": "origin-static",
+                     "cache_settings_name": "cache-5-minutes-ignore-qs-cookies"
+                   },
+                   {
+                     "path": "/proxy",
+                     "regex": false,
+                     "protocol_policy": "http",
+                     "gzip": false,
+                     "behavior": "acceleration",
+                     "path_origin_name": "origin-proxy",
+                     "cache_settings_name": "cache-bypass",
+                     "forward_cookies": "all"
+                   },
+                   {
+                     "path": "/site",
+                     "regex": false,
+                     "protocol_policy": "http",
+                     "gzip": false,
+                     "behavior": "acceleration",
+                     "path_origin_name": "origin-default",
+                     "cache_settings_name": "cache-bypass",
+                     "forward_cookies": "all"
+                   }
+             ]
+       }
