@@ -1,7 +1,7 @@
 ---
 - name: Dependency | Setup virtualenv path
   set_fact:
-    ansible_python_interpreter_current: "{{ ansible_python_interpreter }}"
+    ansible_python_interpreter_current: "{{ ansible_python.executable }}"
 
 - name: Dependency | Install python libraries
   pip:
