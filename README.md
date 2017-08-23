@@ -6,8 +6,8 @@ cloud-cdn
 Ansible role to manage Cloud CDN with different providers.
 
 Roadmap for Cloud Providers:
-* AWS CloudFront
 * Azion Content Delivery
+* AWS CloudFront
 
 Main roles to manage:
 * Facts
@@ -20,28 +20,32 @@ Main roles to manage:
 Requirements
 ------------
 
-* AWS Cloud Front
+* [Azion](https://www.azion.com.br/developers/api/) account
+
+Export your session token into variable `AZION_TOKEN`
+
+```bash
+export AZION_TOKEN="$(curl -s -X POST -H \"Accept: application/json; version=1\" \
+                -H \"Authorization: Basic $(echo ${AZION_USER}:${AZION_PASS}|base64)\" \
+                https://api.azion.net/tokens  |jq .token)
+```
+
+* AWS account to use Cloud Front
 
 For instance, if the role uses the EC2 module, boto package is required.
-
-* [Azion](https://www.azion.com.br/developers/api/)
-
-For instance, AWS Python SDK.
-
-> TODO
 
 Role Variables
 --------------
 
-> TODO. Could be:
+> Could be [roadmap]:
 
 ```YAML
 cdn_aws_region: <aws region>
 cdn_aws_access: <aws access key>
 cdn_aws_secret: <aws secret key>
 
-cdn_azion_auth_pass: <base64 token>
 cdn_azion_auth_token: <session token>
+cdn_azion_auth_token_type: session
 
 cdn_distributions:
   - name: example.com-azion
@@ -102,39 +106,175 @@ cdn_distributions:
           path_origin_name: <strign> (get name from origins and set path_origin_id)
           redirect_to: ""
           waf_rule_set_name: <strign> (get name from Firewalls and set waf_rule_set_id)
-          cache_settings_name: <strign> (get name from cache_settings and set cache_settings_id) 
+          cache_settings_name: <strign> (get name from cache_settings and set cache_settings_id)
 
 ```
-
-> DEV TODO AZION:
-
-```
-Creation order to dev:
-- Check CDN is created
--- YES: get ID
---- check each config has in compliance
--- NOT:
---- create new CDN with basic cfg, get ID
---- create origins
---- create cache settings
---- create WAF
---- create rule sets
---- check/change main config with default origins
-```
-
-
 
 Dependencies
 ------------
 
 * boto3
-* azion-sdk
+* azion
 
 Example Playbook
 ----------------
 
-> TODO
+* Basic - create default template based on SDK sample config
 
+```YAML
+- name: Keep CDNs using Azion provider
+  hosts: localhost
+  connection: local
+  become: no
+
+  roles:
+    - mtulio-ansible-role-cloud-cdn
+
+  vars:
+    cdn_distributions:
+      - name: teste-ansible-default
+        provider: azion
+        state: present
+```
+
+* Advanced - sent your own payload
+
+> We are working to validate the support of hashes unless of payload
+
+```YAML
+- name: Keep CDNs using Azion provider
+  hosts: localhost
+  connection: local
+  become: no
+
+  roles:
+    - mtulio-ansible-role-cloud-cdn
+
+  vars:
+    cdn_distributions:
+      - name: teste-ansible-default
+        provider: azion
+        state: present
+
+      - name: teste-ansible
+        provider: azion
+        state: present
+        payload: |
+           {
+                 "name": "teste-ansible",
+                 "origin_address": "domain.teste-ansible.com",
+                 "cname_access_only": true,
+                 "cname": ["www1.teste-ansible.com"],
+                 "delivery_protocol": "http",
+                 "cdn_cache_settings": "override",
+                 "cdn_cache_settings_minimum_ttl": 2592000,
+                 "origin_protocol_policy": "preserve",
+                 "origins": [
+                           {
+                               "name": "origin-default",
+                               "origin_type": "single_origin",
+                               "host_header": "www..teste-ansible.com",
+                               "origin_protocol_policy": "https",
+                               "addresses": [
+                                   {
+                                    "address": "origin-www.teste-ansible.com"
+                                   }
+                               ],
+                               "connection_timeout": 10,
+                               "timeout_between_bytes": 30
+                           },
+                           {
+                               "name": "origin-balanced",
+                               "origin_type": "load_balancer",
+                               "method": "ip_hash",
+                               "host_header": "www-lb.teste-ansible.com",
+                               "origin_protocol_policy": "preserve",
+                               "addresses": [
+                                   {
+                                    "address": "www-lb1.teste-ansible.com",
+                                    "weight": 10,
+                                    "server_role": "primary",
+                                    "is_active": true
+                                   },
+                                   {
+                                    "address": "origin-lb2.teste-ansible.com",
+                                    "weight": 1,
+                                    "server_role": "backup",
+                                    "is_active": true
+                                   }
+                               ],
+                               "connection_timeout": 10,
+                               "timeout_between_bytes": 30
+                           },
+                           {
+                               "name": "origin-static",
+                               "origin_type": "single_origin",
+                               "host_header": "static..teste-ansible.com",
+                               "origin_protocol_policy": "http",
+                               "addresses": [
+                                   {
+                                    "address": "origin-static.teste-ansible.com"
+                                   }
+                               ],
+                               "connection_timeout": 10,
+                               "timeout_between_bytes": 20
+                           },
+                           {
+                               "name": "origin-proxy",
+                               "origin_type": "single_origin",
+                               "host_header": "proxy.teste-ansible.com",
+                               "origin_protocol_policy": "preserve",
+                               "addresses": [
+                                   {
+                                    "address": "origin-proxy.teste-ansible.com"
+                                   }
+                               ],
+                               "connection_timeout": 10,
+                               "timeout_between_bytes": 20
+                           }
+                       ],
+                 "cache_settings": [
+                     {
+                       "name": "cache-1-hour-ignore-qs-cookies",
+                       "browser_cache_settings": false,
+                       "cdn_cache_settings": "override",
+                       "cdn_cache_settings_maximum_ttl": 3600,
+                       "cache_by_query_string": "ignore",
+                       "enable_query_string_sort": false,
+                       "cache_by_cookies": "ignore"
+                     },
+                     {
+                       "name": "cache-bypass",
+                       "browser_cache_settings": false,
+                       "cdn_cache_settings": "bypass",
+                       "cache_by_query_string": "ignore",
+                       "cache_by_cookies": "ignore"
+                     }
+                   ],
+                 "rules_engine": [
+                       {
+                         "path": "/images/",
+                         "regex": false,
+                         "protocol_policy": "http,https",
+                         "gzip": false,
+                         "behavior": "delivery",
+                         "path_origin_name": "origin-static",
+                         "cache_settings_name": "cache-1-hour-ignore-qs-cookies"
+                       },
+                       {
+                         "path": "/proxy",
+                         "regex": false,
+                         "protocol_policy": "http",
+                         "gzip": false,
+                         "behavior": "acceleration",
+                         "path_origin_name": "origin-proxy",
+                         "cache_settings_name": "cache-bypass",
+                         "forward_cookies": "all"
+                       }
+                 ]
+           }
+
+```
 License
 -------
 

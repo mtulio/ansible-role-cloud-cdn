@@ -3,7 +3,7 @@
 
 DOCUMENTATION = '''
 module: azion_cdn
-version_added: "0.1.0"
+version_added: "0.1.1"
 short_description: Obtain facts about an AZION Content Delivery
 description:
      - Describe AZION Content Delivery configuration
@@ -55,26 +55,34 @@ except ImportError:
     HAS_AZION_LIB = False
 
 
-def azion_cdn_result(res, status):
+def azion_cdn_result(res, status, status_message):
     update_result = namedtuple('update_result', ('success', 'changed', 'message'))
     changed = False
 
-    if status != 200:
-        if 'name' in res:
-            success = True
-            message = { "CDN_exists": res }
-
-        elif not bool(res):
-            success = True
-            message = { "CDN": 'Not Found. {} {}'.format(status, repr(res)) }
-
-        else:
-            success = False
-            message = { "CDN": 'Error {}: {}'.format(status, res) }
-    else:
+    if status == 200:
         success = True
         changed = True
-        message = { "CDN_created": res }
+        message = { "CDN_CREATED": res }
+
+    elif status == 2000:
+        success = True
+        message = { "CDN_EXISTS".format(status_message): res }
+
+    elif (status > 200) and (status < 400):
+        success = True
+        message = { "CDN_{}".format(status_message): res }
+
+    elif (status >= 400) and (status < 600):
+        success = False
+        message = { "CDN_ERROR_{}".format(status): '{}'.format(res) }
+
+    elif (status >= 4000) and (status < 4099):
+        success = False
+        message = { "CDN_ERROR_{}".format(status): '{}'.format(res) }
+
+    else:
+        success = False
+        message = { "CDN_UNKNOWN_{}".format(status): '{}'.format(res) }
 
     return update_result(success=success, changed=changed, message=message)
 
@@ -82,7 +90,7 @@ def azion_cdn_result(res, status):
 def azion_cdn_create(api, cdn_name, cdn_payload=None):
     """Call to library SDK to create CDN."""
     res, status = api.create_cdn(cdn_name, cdn_payload=cdn_payload)
-    return azion_cdn_result(res, status)
+    return azion_cdn_result(res, status, api.get_attr_status_message(status))
 
 
 def main():
@@ -106,6 +114,7 @@ def main():
 
     try:
         azion_api = azion.AzionAPI()
+
     except Exception as e:
         module.fail_json(msg="Can't stablish connection - %s " % str(e))
 
